@@ -1,12 +1,12 @@
-import psutil
-p = psutil.Process()
-p.cpu_affinity([0])
+# import psutil
+# p = psutil.Process()
+# p.cpu_affinity([0])
 
 import os
 # change your gpu here
 # on pcdev2, 0: A100, 1: RTX3080
 # on pcdev12, just check with the nvidia-smi output
-os.environ['CUDA_VISIBLE_DEVICES'] = '2'
+# os.environ['CUDA_VISIBLE_DEVICES'] = '2'
 # this commend can adjust the fraction of memory JAX reallocate
 #os.environ['XLA_PYTHON_CLIENT_MEM_FRACTION'] = 0.75
 
@@ -26,6 +26,10 @@ from ripple import ms_to_Mc_eta
 from astropy.time import Time
 
 from tap import Tap
+import pandas as pd
+import utils
+
+psds_dir = "/home/twouters2/jim_gpu_benchmarks/psds/"
 
 class InjectionRecoveryParser(Tap):
     # detector setup
@@ -38,12 +42,13 @@ class InjectionRecoveryParser(Tap):
     ifos: list[str] = ["ET"]
     # Noise parameters, seed, psd and csd
     noise_seed: int = 13245
-    psds: dict[str, str] = {"E1": "/home/tsun-ho.pang/Projects/et_corr_jax/psd_files/ET_D_psd.txt",
-                            "E2": "/home/tsun-ho.pang/Projects/et_corr_jax/psd_files/ET_D_psd.txt",
-                            "E3": "/home/tsun-ho.pang/Projects/et_corr_jax/psd_files/ET_D_psd.txt"}
-    csds: dict[str, str] = {"E12": "/home/tsun-ho.pang/Projects/et_corr_jax/psd_files/ET_D_csd_zero.txt",
-                            "E23": "/home/tsun-ho.pang/Projects/et_corr_jax/psd_files/ET_D_csd_zero.txt",
-                            "E13": "/home/tsun-ho.pang/Projects/et_corr_jax/psd_files/ET_D_csd_zero.txt"}
+    psds: dict[str, str] = {"E1": psds_dir + "ET_D_psd.txt",
+                            "E2": psds_dir + "ET_D_psd.txt",
+                            "E3": psds_dir + "ET_D_psd.txt",}
+    
+    csds: dict[str, str] = {"E12": psds_dir + "ET_D_csd_zero.txt",
+                            "E23": psds_dir + "ET_D_csd_zero.txt",
+                            "E13": psds_dir + "ET_D_csd_zero.txt"}
 
     # Injection parameters
     m1: float = 1.4
@@ -81,7 +86,7 @@ class InjectionRecoveryParser(Tap):
     num_bins: int = 8
 
     # Output parameters
-    output_path: str = f"./output_5Hz/"
+    output_path: str = f"./outdir/"
     downsample_factor: int = 10
 
 
@@ -292,7 +297,7 @@ jim.print_summary()
 samples = jim.get_samples()
 
 # make output directory
-import pandas as pd
+
 os.makedirs(args.output_path)
 for key in samples.keys():
     samples[key] = jnp.ravel(samples[key])
@@ -300,5 +305,5 @@ df = pd.DataFrame.from_dict(samples)
 df.to_csv(f'./{args.output_path}/posterior_samples.dat', sep=' ', index=False)
 
 # make corner plot
-import utils
+
 utils.corner_plot(samples, true_params, args.output_path)
