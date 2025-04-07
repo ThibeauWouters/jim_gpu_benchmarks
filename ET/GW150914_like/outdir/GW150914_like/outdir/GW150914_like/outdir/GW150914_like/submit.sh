@@ -3,10 +3,10 @@
 #SBATCH -N 1
 #SBATCH -n 1
 #SBATCH -p gpu
-#SBATCH -t 60:00
+#SBATCH -t 10:00
 #SBATCH --gpus-per-node=1
 #SBATCH --cpus-per-gpu=1
-#SBATCH --mem-per-gpu=40G
+#SBATCH --mem-per-gpu=2G
 
 now=$(date)
 echo "$now"

@@ -68,7 +68,7 @@ class InjectionRecoveryParser(Tap):
     # Sampler parameters
     sampling_seed: int = 42
     n_chains: int = 1000
-    n_loop_training: int = 400
+    n_loop_training: int = 200
     n_loop_production: int = 20
     n_local_steps: int = 200
     n_global_steps: int = 200
@@ -296,9 +296,13 @@ jim.sample(key)
 jim.print_summary()
 samples = jim.get_samples()
 
-# make output directory
+# make output directory if not exists
 
-os.makedirs(args.output_path)
+if not os.path.exists(args.output_path):
+    os.makedirs(args.output_path)
+
+print("Saving the samples now:")
+
 for key in samples.keys():
     samples[key] = jnp.ravel(samples[key])
 df = pd.DataFrame.from_dict(samples)
